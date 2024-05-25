@@ -1,0 +1,1 @@
+from .router import static_tags_router

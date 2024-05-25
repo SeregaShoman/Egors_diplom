@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+
+  kernel_api:
+    container_name: kernel_api
+    build:
+      context: .
+      dockerfile: ./kernel_api/Dockerfile
+    restart: always
+    environment:
+
+      - WORKERS_COUNT=4
+      - LOG_LEVEL=INFO
+      - BIND_ADDRESS=0.0.0.0:2000
+
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=users_collection
+      - DB_HOST=172.29.9.109
+      - DRIVERNAME=postgresql+psycopg
+
+      - TRACEBACK_IN_EXCEPT_MIDDELWARE=True
+      - ON_EXCEPT_MIDDELWARE=True
+      - ON_LOGGER_MIDDELWARE=True
+    ports:
+      - 2000:2000
+
+
+  core_db:
+    image: postgres
+    container_name: core_db
+    ports:
+      - 5432:5432
+    shm_size: 2060m
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=users_collection
+    restart: always
+    volumes:
+      - ./database/init-scripts:/docker-entrypoint-initdb.d
+      - ./database/pg_data:/var/lib/postgresql/data
+
