@@ -18,7 +18,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=users_collection
-      - DB_HOST=172.29.9.109
+      - DB_HOST=core_db
       - DRIVERNAME=postgresql+psycopg
 
       - TRACEBACK_IN_EXCEPT_MIDDELWARE=True
@@ -41,5 +41,4 @@ services:
     restart: always
     volumes:
       - ./database/init-scripts:/docker-entrypoint-initdb.d
-      - ./database/pg_data:/var/lib/postgresql/data
 
