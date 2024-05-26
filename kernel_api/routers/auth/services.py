@@ -9,13 +9,19 @@ async def _create_user(
     user_data: SignUpBody,
     db_session: AsyncSession
 ) -> User:
+    if user_data.role == "Студент":
+        role_id = 1
+    if user_data.role == "Админ":
+        role_id = 2
+    if user_data.role == "Партнёр":
+        role_id = 3
     new_user = User(
         fio = user_data.fio,
         avatar_url = user_data.avatar_url,
         login = user_data.login,
         email = user_data.email,
         password = user_data.password,
-        role_id = 1 if user_data.role == "Студент" else 2,
+        role_id = role_id,
         groups = user_data.group,
         institution = user_data.institution,
         organization = user_data.organization,
