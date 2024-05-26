@@ -33,4 +33,4 @@ CREATE TABLE EventRegistrations (
     user_id UUID REFERENCES Users(id)
 );
 
-INSERT INTO Roles (name) VALUES ('Студент'), ('Партнёр');
+INSERT INTO Roles (name) VALUES ('Студент'), ('Партнёр'), ('Админ');

@@ -6,7 +6,7 @@ from dependencies import decode_token, get_db_session
 from .schemas import EventSchema
 from .services import (
     create_event, get_all, get_events_by_creator_id, 
-    create_event_registration, get_events_by_user_id
+    create_event_registration, get_events_by_user_id, update_event_in_db
 )
 
 event_router = APIRouter(
@@ -106,3 +106,33 @@ async def get_all_events(
         return await get_events_by_user_id(
             token["id"], db_session
         )
+    
+
+@event_router.put(
+    path="/update",
+    status_code=status.HTTP_201_CREATED
+)
+async def update_event(
+    event_id: str,
+    event_data: EventSchema,
+    token: dict = Depends(decode_token),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    if token["role"] == "Партнёр":
+        await update_event_in_db(
+            event_id, db_session, token["id"],
+            event_data.description, event_data.max_participants,
+            event_data.status, event_data.type, event_data.image_url
+        )
+    if token["role"] == "Админ":
+        await update_event_in_db(
+            event_id, db_session, None,
+            event_data.description, event_data.max_participants,
+            event_data.status, event_data.type, event_data.image_url
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ты не можешь редактировать ивенты"
+        )
+    return {"msg": "Ты успешно обновил событие."}

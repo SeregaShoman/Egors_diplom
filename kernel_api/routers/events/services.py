@@ -1,3 +1,4 @@
+from sqlalchemy import update
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -63,3 +64,26 @@ async def get_events_by_user_id(
     result = await db_session.execute(query)
     events = result.scalars().all()
     return events
+
+
+async def update_event_in_db(
+    event_id: str, db_session: AsyncSession, 
+    creator_id: str = None,
+    description: str = None, max_participants: int = None,
+    status: str = None, type: str = None, image_url: str = None,
+):
+    stmt = update(Event).where(Event.id == event_id)
+    if creator_id:
+        stmt = stmt.where(Event.creator_id == creator_id)
+    if description is not None:
+        stmt = stmt.values(description=description)
+    if max_participants is not None:
+        stmt = stmt.values(max_participants=max_participants)
+    if status is not None:
+        stmt = stmt.values(status=status)
+    if type is not None:
+        stmt = stmt.values(type=type)
+    if image_url is not None:
+        stmt = stmt.values(image_url=image_url)
+    await db_session.execute(stmt)
+    await db_session.commit()

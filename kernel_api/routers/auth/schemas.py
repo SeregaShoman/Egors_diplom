@@ -16,7 +16,7 @@ class SignUpBody(BaseModel):
 
     @validator('role')
     def role_must_be_student_or_partner(cls, v):
-        if v not in {'Студент', 'Партнёр'}:
+        if v not in {'Студент', 'Партнёр', 'Админ'}:
             raise ValueError('role must be either Студент or Партнёр')
         return v
 
@@ -39,6 +39,10 @@ class SignUpBody(BaseModel):
                 raise ValueError('organization and position must be provided if role is Партнёр')
             if group or institution:
                 raise ValueError('group and institution must not be provided if role is Партнёр')
+            
+        if role == 'Админ':
+            if group or institution or organization or position:
+                raise ValueError("group and institution and organization and position must not be provided if role is Админ")
 
         return values
 
