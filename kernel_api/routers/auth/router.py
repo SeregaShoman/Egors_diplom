@@ -93,8 +93,7 @@ async def refresh(
 
 
 @auth_router.get(
-    path="refresh_tokens", status_code=status.HTTP_200_OK,
-    description="ДЛЯ ЕБЛЕТА НА ВТОРОМ И ШЕСТОМ СЛАЙДАХ"
+    path="refresh_tokens", status_code=status.HTTP_200_OK
 )
 async def get_me(
     token: dict = Depends(decode_token),

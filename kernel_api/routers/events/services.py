@@ -15,6 +15,7 @@ async def create_event(
         max_participants=event_data.max_participants,
         status=event_data.status,
         type=event_data.type,
+        start_time=event_data.start_time,
         image_url=event_data.image_url,
         creator_id=creator_id
     )
@@ -68,7 +69,7 @@ async def get_events_by_user_id(
 
 async def update_event_in_db(
     event_id: str, db_session: AsyncSession, 
-    creator_id: str = None,
+    creator_id: str = None, start_time: str = None,
     description: str = None, max_participants: int = None,
     status: str = None, type: str = None, image_url: str = None,
 ):
@@ -83,6 +84,8 @@ async def update_event_in_db(
         stmt = stmt.values(status=status)
     if type is not None:
         stmt = stmt.values(type=type)
+    if start_time is not None:
+        stmt = stmt.values(start_time=start_time)
     if image_url is not None:
         stmt = stmt.values(image_url=image_url)
     await db_session.execute(stmt)

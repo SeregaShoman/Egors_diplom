@@ -120,19 +120,21 @@ async def update_event(
 ):
     if token["role"] == "Партнёр":
         await update_event_in_db(
-            event_id, db_session, token["id"],
+            event_id, db_session, token["id"], event_data.start_time,
             event_data.description, event_data.max_participants,
             event_data.status, event_data.type, event_data.image_url
         )
+        return {"msg": "Ты успешно обновил событие."}
     if token["role"] == "Админ":
         await update_event_in_db(
-            event_id, db_session, None,
+            event_id, db_session, None, event_data.start_time,
             event_data.description, event_data.max_participants,
             event_data.status, event_data.type, event_data.image_url
         )
+        return {"msg": "Ты успешно обновил событие."}
     else:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Ты не можешь редактировать ивенты"
         )
-    return {"msg": "Ты успешно обновил событие."}
+    

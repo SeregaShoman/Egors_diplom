@@ -42,6 +42,7 @@ class Event(BASE):
     max_participants = Column(Integer, nullable=False)
     status = Column(Text, nullable=False)
     type = Column(Text, nullable=False)
+    start_time = Column(Text, nullable=False)
     image_url = Column(Text)
     creator_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
 

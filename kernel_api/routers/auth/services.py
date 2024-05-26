@@ -11,9 +11,9 @@ async def _create_user(
 ) -> User:
     if user_data.role == "Студент":
         role_id = 1
-    if user_data.role == "Админ":
+    elif user_data.role == "Партнёр":
         role_id = 2
-    if user_data.role == "Партнёр":
+    elif user_data.role == "Админ":
         role_id = 3
     new_user = User(
         fio = user_data.fio,

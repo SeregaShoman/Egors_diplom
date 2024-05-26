@@ -23,6 +23,7 @@ CREATE TABLE Events (
     max_participants INTEGER NOT NULL,
     status TEXT NOT NULL,
     type TEXT NOT NULL,
+    start_time TEXT NOT NULL,
     image_url TEXT,
     creator_id UUID REFERENCES Users(id)
 );
