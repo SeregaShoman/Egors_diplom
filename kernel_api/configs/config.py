@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
 
-    TITLE: str = "АПИ ФРОНТА ПОД КЛЮЧЬ"
+    TITLE: str = "API"
     UVICORN_LIMIT_MAX_REQUESTS: int = 100
     VERSION: str = "0.0.1"
 
@@ -23,7 +23,7 @@ class Config(BaseSettings):
     DB_HOST: str
     DB_NAME: str
 
-    JWT_SECRET: str = "EGOR_LOH"
+    JWT_SECRET: str = "JWT_SECRET"
     
     @cached_property
     def get_app_config(self) -> dict[str, str | bool | None]:

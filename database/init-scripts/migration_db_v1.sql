@@ -19,6 +19,7 @@ CREATE TABLE Users (
 
 CREATE TABLE Events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
     description TEXT NOT NULL,
     max_participants INTEGER NOT NULL,
     status TEXT NOT NULL,

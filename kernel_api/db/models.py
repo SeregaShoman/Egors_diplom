@@ -38,6 +38,7 @@ class User(BASE):
 class Event(BASE):
     __tablename__ = 'events'
     id = Column(UUID(as_uuid=True), primary_key=True, default=generate_uuid)
+    name = Column(Text, nullable=False)
     description = Column(Text, nullable=False)
     max_participants = Column(Integer, nullable=False)
     status = Column(Text, nullable=False)

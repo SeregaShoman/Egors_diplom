@@ -10,6 +10,8 @@ services:
     restart: always
     environment:
 
+      - TITLE=ТИТУЛЬНИК
+
       - WORKERS_COUNT=4
       - LOG_LEVEL=INFO
       - BIND_ADDRESS=0.0.0.0:2000

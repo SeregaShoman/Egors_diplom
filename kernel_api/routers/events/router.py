@@ -6,7 +6,7 @@ from dependencies import decode_token, get_db_session
 from .schemas import EventSchema
 from .services import (
     create_event, get_all, get_events_by_creator_id, 
-    create_event_registration, get_events_by_user_id, update_event_in_db
+    create_event_registration, get_events_by_user_id, update_event_in_db, get_users_by_event_id
 )
 
 event_router = APIRouter(
@@ -108,6 +108,18 @@ async def get_all_events(
         )
     
 
+@event_router.get(
+    path="/get_users_registered_in_events",
+    status_code=status.HTTP_200_OK
+)
+async def get_users_registered_in_events(
+    event_id: str,
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    users =  await get_users_by_event_id(event_id, db_session)
+    return users
+    
+
 @event_router.put(
     path="/update",
     status_code=status.HTTP_201_CREATED
@@ -121,13 +133,6 @@ async def update_event(
     if token["role"] == "Партнёр":
         await update_event_in_db(
             event_id, db_session, token["id"], event_data.start_time,
-            event_data.description, event_data.max_participants,
-            event_data.status, event_data.type, event_data.image_url
-        )
-        return {"msg": "Ты успешно обновил событие."}
-    if token["role"] == "Админ":
-        await update_event_in_db(
-            event_id, db_session, None, event_data.start_time,
             event_data.description, event_data.max_participants,
             event_data.status, event_data.type, event_data.image_url
         )

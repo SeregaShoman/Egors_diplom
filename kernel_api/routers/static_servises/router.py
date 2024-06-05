@@ -17,7 +17,7 @@ static_tags_router = APIRouter(
 )
 async def get_static_tags():
     return {
-        "patners_services":{
+        "partners_services":{
             "Banking": "Банковское дело",
             "IT": "IT",
             "Law and Jurisprudence": "Право и юриспруденция",
