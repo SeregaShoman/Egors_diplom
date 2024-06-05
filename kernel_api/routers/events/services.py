@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from sqlalchemy import update
 from sqlalchemy.sql import func
 from sqlalchemy.future import select
+from sqlalchemy import update, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -150,3 +150,22 @@ async def get_users_by_event_id(event_id: UUID, db_session: AsyncSession):
         }
         for user in users
     ]
+
+
+async def delete_event_and_registrations(
+    event_id: UUID,
+    user_id: UUID,
+    db_session: AsyncSession
+):
+    event_query = select(Event).where(Event.id == event_id, Event.creator_id == user_id)
+    result = await db_session.execute(event_query)
+    event = result.scalar_one_or_none()
+        
+    if event is None:
+        raise ValueError(status_code=404, detail="Event not found or not created by the user")
+
+    delete_registrations_query = delete(EventRegistration).where(EventRegistration.event_id == event_id)
+    await db_session.execute(delete_registrations_query)
+        
+    delete_event_query = delete(Event).where(Event.id == event_id)
+    await db_session.execute(delete_event_query)
