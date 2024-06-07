@@ -1,8 +1,7 @@
 import uuid
-
 from sqlalchemy import Column, Integer, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from .base import BASE
 
 
@@ -26,13 +25,29 @@ class User(BASE):
     email = Column(Text, nullable=False, unique=True)
     password = Column(Text, nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'))
-    groups = Column(Text)
-    institution = Column(Text)
-    organization = Column(Text)
-    position = Column(Text)
 
     role = relationship('Role', back_populates='users')
     events_created = relationship('Event', back_populates='creator')
+    student_info = relationship('Student', uselist=False, back_populates='user')
+    partner_info = relationship('Partner', uselist=False, back_populates='user')
+
+
+class Student(BASE):
+    __tablename__ = 'students'
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), primary_key=True)
+    groups = Column(Text, nullable=False)
+    institution = Column(Text, nullable=False)
+
+    user = relationship('User', back_populates='student_info')
+
+
+class Partner(BASE):
+    __tablename__ = 'partners'
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), primary_key=True)
+    organization = Column(Text, nullable=False)
+    position = Column(Text, nullable=False)
+
+    user = relationship('User', back_populates='partner_info')
 
 
 class Event(BASE):

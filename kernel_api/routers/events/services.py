@@ -79,6 +79,14 @@ async def get_events_by_creator_id(creator_id: UUID, db_session: AsyncSession):
 async def create_event_registration(
     event_id: str, user_id: str, db_session: AsyncSession
 ):
+    query = (
+        select(EventRegistration)
+        .where(EventRegistration.event_id == event_id, EventRegistration.user_id == user_id)
+    )
+    result = await db_session.execute(query)
+    existing_registration = result.scalars().first()
+    if existing_registration:
+        raise ValueError(detail="User is already registered for this event")
     registration = EventRegistration(event_id=event_id, user_id=user_id)
     db_session.add(registration)
     await db_session.commit()
@@ -130,7 +138,7 @@ async def get_users_by_event_id(event_id: UUID, db_session: AsyncSession):
         select(User)
         .join(EventRegistration, User.id == EventRegistration.user_id)
         .where(EventRegistration.event_id == event_id)
-        .options(selectinload(User.role))
+        .options(selectinload(User.role), selectinload(User.student_info))
     )
     result = await db_session.execute(query)
     users = result.scalars().all()
@@ -143,10 +151,8 @@ async def get_users_by_event_id(event_id: UUID, db_session: AsyncSession):
             'login': user.login,
             'email': user.email,
             'role': user.role.name if user.role else None,
-            'groups': user.groups,
-            'institution': user.institution,
-            'organization': user.organization,
-            'position': user.position
+            'groups': user.student_info.groups if user.student_info else None,
+            'institution': user.student_info.institution if user.student_info else None
         }
         for user in users
     ]
@@ -169,3 +175,4 @@ async def delete_event_and_registrations(
         
     delete_event_query = delete(Event).where(Event.id == event_id)
     await db_session.execute(delete_event_query)
+    await db_session.commit()

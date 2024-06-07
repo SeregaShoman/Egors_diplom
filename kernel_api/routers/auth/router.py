@@ -21,7 +21,7 @@ auth_router = APIRouter(
 
 
 @auth_router.post(
-    path="sign_up", status_code=status.HTTP_201_CREATED
+    path="/sign_up", status_code=status.HTTP_201_CREATED
 )
 async def registration_for_user(
     user_data: SignUpBody,
@@ -41,34 +41,34 @@ async def registration_for_user(
 
 
 @auth_router.post(
-    path="sign_in", status_code=status.HTTP_200_OK
+    path="/sign_in", status_code=status.HTTP_200_OK
 )
 async def user_login(
     user_data: SignInBody,
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
     user = await _get_user_by_creds(user_data, db_session)
-    if user == None:
-        return HTTPException(
+    if user is None:
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"msg":"WRONG PASS OR LOGN"}
-            )
+            detail={"msg": "WRONG PASS OR LOGIN"}
+        )
     return {
         "access_token": jwt.encode(
             {"role": user.role.name, "id": str(user.id), 
-            "dt_identifier":str(datetime.now())}, CONFIG.JWT_SECRET, 
+            "dt_identifier": str(datetime.now())}, CONFIG.JWT_SECRET, 
             algorithm="HS256"
         ),
         "refresh_token": jwt.encode(
-            {"login":user.login, "password":user.password, 
-            "dt_identifier":str(datetime.now())}, CONFIG.JWT_SECRET,
+            {"login": user.login, "password": user.password, 
+            "dt_identifier": str(datetime.now())}, CONFIG.JWT_SECRET,
             algorithm="HS256"
         )
     }
 
 
 @auth_router.post(
-    path="refresh_tokens", status_code=status.HTTP_200_OK
+    path="/refresh_tokens", status_code=status.HTTP_200_OK
 )
 async def refresh(
     refresh_token: str,
@@ -81,39 +81,50 @@ async def refresh(
     return {
         "access_token": jwt.encode(
             {"role": user.role.name, "id": str(user.id), 
-            "dt_identifier":str(datetime.now())}, CONFIG.JWT_SECRET, 
+            "dt_identifier": str(datetime.now())}, CONFIG.JWT_SECRET, 
             algorithm="HS256"
         ),
         "refresh_token": jwt.encode(
-            {"login":user.login, "password":user.password, 
-            "dt_identifier":str(datetime.now())}, CONFIG.JWT_SECRET, 
+            {"login": user.login, "password": user.password, 
+            "dt_identifier": str(datetime.now())}, CONFIG.JWT_SECRET, 
             algorithm="HS256"
         )
     }
 
 
 @auth_router.get(
-    path="refresh_tokens", status_code=status.HTTP_200_OK
+    path="/me", status_code=status.HTTP_200_OK
 )
 async def get_me(
     token: dict = Depends(decode_token),
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
-    if token.get("id") != None:
+    if token.get("id") is not None:
         user = await _get_user_by_id(token["id"], db_session)
-        return {
-            "id": user.id, "fio": user.fio,
+        user_data = {
+            "id": user.id,
+            "fio": user.fio,
             "avatar_url": user.avatar_url,
             "login": user.login,
             "email": user.email,
             "password": user.password,
             "role": user.role.name,
-            "groups": user.groups,
-            "institution": user.institution,
-            "organization": user.organization,
-            "position": user.position
         }
-    return HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"msg":"INVALID TOKEN"}
-            )
+        if user.role.name == "Студент":
+            student_info = user.student_info
+            user_data.update({
+                "groups": student_info.groups,
+                "institution": student_info.institution
+            })
+        elif user.role.name == "Партнёр":
+            partner_info = user.partner_info
+            user_data.update({
+                "organization": partner_info.organization,
+                "position": partner_info.position
+            })
+        return user_data
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={"msg": "INVALID TOKEN"}
+    )

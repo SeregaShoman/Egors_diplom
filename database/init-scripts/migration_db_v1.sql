@@ -10,11 +10,19 @@ CREATE TABLE Users (
     login TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    role_id INTEGER REFERENCES Roles(id),
-    groups TEXT,
-    institution TEXT,
-    organization TEXT,
-    position TEXT
+    role_id INTEGER REFERENCES Roles(id)
+);
+
+CREATE TABLE Students (
+    user_id UUID PRIMARY KEY REFERENCES Users(id),
+    groups TEXT NOT NULL,
+    institution TEXT NOT NULL
+);
+
+CREATE TABLE Partners (
+    user_id UUID PRIMARY KEY REFERENCES Users(id),
+    organization TEXT NOT NULL,
+    position TEXT NOT NULL
 );
 
 CREATE TABLE Events (
