@@ -27,11 +27,12 @@ CREATE TABLE Partners (
 
 CREATE TABLE Events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
     max_participants INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,
     type VARCHAR(50) NOT NULL,
+    place VARCHAR(150) NOT NULL,
     start_time TIMESTAMP NOT NULL,
     created_time TIMESTAMP NOT NULL,
     image_url VARCHAR(255),

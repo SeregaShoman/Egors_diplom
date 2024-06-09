@@ -1,10 +1,8 @@
 from uuid import UUID
-from datetime import datetime
 
 from sqlalchemy.sql import func
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schemas import EventSchema
@@ -22,6 +20,7 @@ async def create_event(
         status=event_data.status,
         name=event_data.name,
         type=event_data.type,
+        place=event_data.place,
         start_time=event_data.start_time,
         image_url=event_data.image_url,
         creator_id=creator_id
@@ -159,4 +158,3 @@ async def delete_event_and_registrations(
     delete_event_query = delete(Event).where(Event.id == event_id)
     await db_session.execute(delete_event_query)
     await db_session.commit()
-

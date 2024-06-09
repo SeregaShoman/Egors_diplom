@@ -55,11 +55,12 @@ class Partner(BASE):
 class Event(BASE):
     __tablename__ = 'events'
     id = Column(UUID(as_uuid=True), primary_key=True, default=generate_uuid)
-    name = Column(String(100), nullable=False)
+    name = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
     max_participants = Column(Integer, nullable=False)
     status = Column(String(50), nullable=False)
     type = Column(String(50), nullable=False)
+    place = Column(String(150), nullable=False)
     start_time = Column(DateTime, nullable=False)
     created_time = Column(DateTime, nullable=False, default=datetime.now)
     image_url = Column(String(255))

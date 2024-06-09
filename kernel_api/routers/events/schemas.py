@@ -6,6 +6,7 @@ class EventSchema(BaseModel):
     name: str
     max_participants: int
     status: str
+    place: str
     start_time: datetime
     type: str
     image_url: str
