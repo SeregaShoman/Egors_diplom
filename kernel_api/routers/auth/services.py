@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 from db import User, Student, Partner
 from .schemas import SignUpBody, SignInBody
 
-async def _create_user(
+async def create_user(
     user_data: SignUpBody,
     db_session: AsyncSession
 ) -> User:
@@ -26,7 +26,7 @@ async def _create_user(
     )
 
     db_session.add(new_user)
-    await db_session.flush()  # Ensure the user is added and we have an ID for relationships
+    await db_session.flush() 
 
     if user_data.role == "Студент":
         student_info = Student(
@@ -47,7 +47,7 @@ async def _create_user(
     return new_user
 
 
-async def _get_user_by_creds(
+async def get_user_by_creds(
     user_data: SignInBody,
     db_session: AsyncSession
 ) -> User:
@@ -61,7 +61,7 @@ async def _get_user_by_creds(
     return user
 
 
-async def _get_user_by_id(
+async def get_user_by_id(
     user_id: str,
     db_session: AsyncSession
 ) -> User:

@@ -18,7 +18,6 @@ COPY ./kernel_api/configs ./configs
 COPY ./kernel_api/routers ./routers
 COPY ./kernel_api/middleware ./middleware
 COPY ./kernel_api/dependencies ./dependencies
-COPY ./kernel_api/base_classes ./base_classes
 COPY ./kernel_api/deploy_serv/uvicorn_settings.py .
 COPY ./kernel_api/deploy_serv/entrypoint.sh ./deploy_serv/entrypoint.sh
 RUN chmod +x ./deploy_serv/entrypoint.sh

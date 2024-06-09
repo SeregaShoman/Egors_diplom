@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, status, Depends, HTTPException
@@ -7,7 +9,7 @@ from .schemas import EventSchema
 from .services import (
     create_event, get_all, get_events_by_creator_id, 
     create_event_registration, get_events_by_user_id, 
-    update_event_in_db, get_users_by_event_id, delete_event_and_registrations
+    update_event_in_db, delete_event_and_registrations
 )
 
 event_router = APIRouter(
@@ -94,7 +96,7 @@ async def registration_student_to_event(
     path="/get_all/by_student",
     status_code=status.HTTP_200_OK
 )
-async def get_all_events(
+async def get_all_events_by_student(
     token: dict = Depends(decode_token),
     db_session: AsyncSession = Depends(get_db_session)
 ):
@@ -109,18 +111,6 @@ async def get_all_events(
         )
     
 
-@event_router.get(
-    path="/get_users_registered_in_events",
-    status_code=status.HTTP_200_OK
-)
-async def get_users_registered_in_events(
-    event_id: str,
-    db_session: AsyncSession = Depends(get_db_session)
-):
-    users =  await get_users_by_event_id(event_id, db_session)
-    return users
-    
-
 @event_router.put(
     path="/update",
     status_code=status.HTTP_201_CREATED
@@ -131,7 +121,7 @@ async def update_event(
     token: dict = Depends(decode_token),
     db_session: AsyncSession = Depends(get_db_session)
 ):
-    if token["role"] == "Партнёр":
+    if token["role"] in ["Партнёр", "Админ"]:
         await update_event_in_db(
             event_id, db_session, token["id"], event_data.start_time,
             event_data.description, event_data.max_participants,
@@ -149,10 +139,18 @@ async def update_event(
     path="/delete",
     status_code=status.HTTP_200_OK
 )
-async def update_event(
+async def delete_event(
     event_id: str,
     token: dict = Depends(decode_token),
     db_session: AsyncSession = Depends(get_db_session)
 ):
-    await delete_event_and_registrations(event_id, token["id"], db_session)
+    if token["role"] == "Партнёр":
+        await delete_event_and_registrations(event_id, token["id"], db_session)
+    elif token["role"] == "Админ":
+        await delete_event_and_registrations(event_id, None, db_session)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ты не можешь удалять ивенты"
+        )
     return {"msg": "Вы успешно удалили ивент."}

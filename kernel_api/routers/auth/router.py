@@ -9,7 +9,7 @@ from configs import CONFIG
 from .schemas import SignUpBody, SignInBody
 from dependencies import get_db_session, decode_token
 from .services import (
-    _create_user, _get_user_by_creds, _get_user_by_id
+    create_user, get_user_by_creds, get_user_by_id
 )
 
 
@@ -27,7 +27,7 @@ async def registration_for_user(
     user_data: SignUpBody,
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
-    new_user = await _create_user(user_data, db_session)
+    new_user = await create_user(user_data, db_session)
     return {
         "access_token": jwt.encode(
             {"role": user_data.role, "id": str(new_user.id), 
@@ -47,7 +47,7 @@ async def user_login(
     user_data: SignInBody,
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
-    user = await _get_user_by_creds(user_data, db_session)
+    user = await get_user_by_creds(user_data, db_session)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -75,7 +75,7 @@ async def refresh(
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
     refresh_token = jwt.decode(refresh_token, CONFIG.JWT_SECRET, algorithms=["HS256"])
-    user = await _get_user_by_creds(
+    user = await get_user_by_creds(
         SignInBody(login=refresh_token["login"], password=refresh_token["password"]), db_session
     )
     return {
@@ -100,7 +100,7 @@ async def get_me(
     db_session: AsyncSession = Depends(get_db_session)
 ) -> dict:
     if token.get("id") is not None:
-        user = await _get_user_by_id(token["id"], db_session)
+        user = await get_user_by_id(token["id"], db_session)
         user_data = {
             "id": user.id,
             "fio": user.fio,

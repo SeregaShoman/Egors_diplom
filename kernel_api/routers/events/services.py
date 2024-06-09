@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 
 from sqlalchemy.sql import func
 from sqlalchemy.future import select
@@ -7,7 +8,8 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schemas import EventSchema
-from db import Event, EventRegistration, User
+from db import Event, EventRegistration
+
 
 async def create_event(
     event_data: EventSchema,
@@ -29,7 +31,9 @@ async def create_event(
     return event
 
 
-async def get_all(db_session: AsyncSession):
+async def get_all(
+    db_session: AsyncSession,
+):
     query = (
         select(
             Event,
@@ -41,7 +45,6 @@ async def get_all(db_session: AsyncSession):
     )
     result = await db_session.execute(query)
     events = result.all()
-
     return [
         {
             'event': event,
@@ -52,7 +55,10 @@ async def get_all(db_session: AsyncSession):
     ]
 
 
-async def get_events_by_creator_id(creator_id: UUID, db_session: AsyncSession):
+async def get_events_by_creator_id(
+    creator_id: UUID,
+    db_session: AsyncSession
+):
     query = (
         select(
             Event,
@@ -65,7 +71,6 @@ async def get_events_by_creator_id(creator_id: UUID, db_session: AsyncSession):
     )
     result = await db_session.execute(query)
     events = result.all()
-
     return [
         {
             'event': event,
@@ -133,37 +138,15 @@ async def update_event_in_db(
     await db_session.commit()
 
 
-async def get_users_by_event_id(event_id: UUID, db_session: AsyncSession):
-    query = (
-        select(User)
-        .join(EventRegistration, User.id == EventRegistration.user_id)
-        .where(EventRegistration.event_id == event_id)
-        .options(selectinload(User.role), selectinload(User.student_info))
-    )
-    result = await db_session.execute(query)
-    users = result.scalars().all()
-
-    return [
-        {
-            'id': str(user.id),
-            'fio': user.fio,
-            'avatar_url': user.avatar_url,
-            'login': user.login,
-            'email': user.email,
-            'role': user.role.name if user.role else None,
-            'groups': user.student_info.groups if user.student_info else None,
-            'institution': user.student_info.institution if user.student_info else None
-        }
-        for user in users
-    ]
-
-
 async def delete_event_and_registrations(
     event_id: UUID,
-    user_id: UUID,
+    user_id: UUID | None,
     db_session: AsyncSession
 ):
-    event_query = select(Event).where(Event.id == event_id, Event.creator_id == user_id)
+    event_query = select(Event).where(Event.id == event_id)
+    if user_id != None:
+        event_query = event_query.where(Event.creator_id == user_id)
+
     result = await db_session.execute(event_query)
     event = result.scalar_one_or_none()
         
@@ -176,3 +159,4 @@ async def delete_event_and_registrations(
     delete_event_query = delete(Event).where(Event.id == event_id)
     await db_session.execute(delete_event_query)
     await db_session.commit()
+
