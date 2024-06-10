@@ -98,6 +98,18 @@ async def create_event_registration(
     return registration
 
 
+async def delete_user_registration(
+    event_id: str, user_id: str,
+    db_session: AsyncSession
+):
+    delete_registrations_query = delete(EventRegistration).where(
+        EventRegistration.user_id == user_id,
+        EventRegistration.event_id == event_id
+    )
+    await db_session.execute(delete_registrations_query)
+    await db_session.commit()
+
+
 async def get_events_by_user_id(
     user_id: str,
     db_session: AsyncSession

@@ -9,7 +9,8 @@ from .schemas import EventSchema
 from .services import (
     create_event, get_all, get_events_by_creator_id, 
     create_event_registration, get_events_by_user_id, 
-    update_event_in_db, delete_event_and_registrations
+    update_event_in_db, delete_event_and_registrations,
+    delete_user_registration
 )
 
 event_router = APIRouter(
@@ -90,6 +91,28 @@ async def registration_student_to_event(
         event_id, token["id"], db_session
     ):
         return {"msg":"Вы успешно зарегистрировались на мероприятий."}
+    
+
+@event_router.delete(
+    path="/student_unregistration",
+    status_code=status.HTTP_200_OK
+)
+async def delete_user_from_event(
+    event_id: str,
+    user_id: str | None = None,
+    token: dict = Depends(decode_token),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    if token["role"] in ["Партнёр", "Админ"]:
+        await delete_user_registration(event_id, user_id, db_session)
+    elif token["role"] == "Студент":
+        await delete_user_registration(event_id, token["id"], db_session)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ты не можешь удалять студентов с ивентов"
+        )
+    return {"msg": "Вы успешно отписали студента от события."}
     
 
 @event_router.get(
