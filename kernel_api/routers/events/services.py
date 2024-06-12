@@ -170,3 +170,26 @@ async def delete_event_and_registrations(
     delete_event_query = delete(Event).where(Event.id == event_id)
     await db_session.execute(delete_event_query)
     await db_session.commit()
+
+
+async def event_by_id(
+    event_id: UUID,
+    db_session: AsyncSession
+):
+    query = (
+        select(
+            Event,
+            func.count(EventRegistration.id).label('registrations_count'),
+            func.array_agg(EventRegistration.user_id).label('user_ids')
+        )
+        .outerjoin(EventRegistration, Event.id == EventRegistration.event_id)
+        .where(Event.id == event_id)
+        .group_by(Event.id)
+    )
+    result = await db_session.execute(query)
+    event, registrations_count, user_ids = result.first()
+    return {
+            'event': event,
+            'registrations_count': registrations_count,
+            'user_ids': user_ids
+        }

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, status, Depends, HTTPException
@@ -10,7 +8,7 @@ from .services import (
     create_event, get_all, get_events_by_creator_id, 
     create_event_registration, get_events_by_user_id, 
     update_event_in_db, delete_event_and_registrations,
-    delete_user_registration
+    delete_user_registration, event_by_id
 )
 
 event_router = APIRouter(
@@ -177,3 +175,23 @@ async def delete_event(
             detail="Ты не можешь удалять ивенты"
         )
     return {"msg": "Вы успешно удалили ивент."}
+
+
+@event_router.get(
+    path="/get_by_id",
+    status_code=status.HTTP_200_OK
+)
+async def get_event_by_id(
+    event_id: str,
+    token: dict = Depends(decode_token),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    if token["role"] in ["Партнёр", "Админ"]:
+        event_info = await event_by_id(event_id,  db_session)
+        return event_info
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ты не можешь удалять ивенты"
+        )
+    
