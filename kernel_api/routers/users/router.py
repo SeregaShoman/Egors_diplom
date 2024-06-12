@@ -4,7 +4,10 @@ from fastapi import APIRouter, status, Depends, HTTPException
 
 from .schemas import UserUpdateSchema
 from dependencies import decode_token, get_db_session
-from .services import get_users_by_event_id, get_user_by_id, update_user_in_db
+from .services import (
+    get_users_by_event_id, get_user_by_id, 
+    update_user_in_db, delete_user_and_related_data
+)
 
 users_router = APIRouter(
     tags=["Роутер для манипуляций с пользователями"],
@@ -66,3 +69,17 @@ async def update_user_by_id(
             user_data.student_info, user_data.partner_info
         )
     return {"msg": "Ты успешно обновил данные!"}
+
+
+@users_router.delete(
+    path="/by_id",
+    status_code=status.HTTP_200_OK
+)
+async def delete_user_by_id(
+    user_id: str | None,
+    token: dict = Depends(decode_token),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    if token["role"] in ["Админ"]:
+        await delete_user_and_related_data(user_id, db_session)
+    return {"msg": "Ты успешно удалил данные!"}

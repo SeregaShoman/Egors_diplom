@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import EventRegistration, User, Student, Partner
+from db import EventRegistration, User, Student, Partner, Event
 from .schemas import UserUpdateSchema, StudentUpdateSchema, PartnerUpdateSchema
 
 
@@ -81,4 +81,32 @@ async def update_user_in_db(
     if partner_info.position is not None:
         stmt = stmt.values(position=partner_info.position)
     await db_session.execute(stmt)
+    await db_session.commit()
+
+
+async def delete_user_and_related_data(
+    user_id: UUID, 
+    db_session: AsyncSession
+):
+    result = await db_session.execute(
+        select(User)
+        .options(
+            selectinload(User.student_info),
+            selectinload(User.partner_info),
+            selectinload(User.events_created).selectinload(Event.registrations)
+        )
+        .filter(User.id == user_id)
+    )
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise ValueError("User not found")
+    if user.student_info:
+        await db_session.delete(user.student_info)
+    if user.partner_info:
+        await db_session.delete(user.partner_info)
+    for event in user.events_created:
+        for registration in event.registrations:
+            await db_session.delete(registration)
+            await db_session.delete(event)
+    await db_session.delete(user)
     await db_session.commit()
