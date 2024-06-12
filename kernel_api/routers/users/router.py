@@ -2,8 +2,9 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, status, Depends, HTTPException
 
+from .schemas import UserUpdateSchema
 from dependencies import decode_token, get_db_session
-from .services import get_users_by_event_id, get_user_by_id
+from .services import get_users_by_event_id, get_user_by_id, update_user_in_db
 
 users_router = APIRouter(
     tags=["Роутер для манипуляций с пользователями"],
@@ -41,3 +42,27 @@ async def get_users_by_id(
 ):
     users =  await get_user_by_id(user_id, db_session)
     return users
+
+
+@users_router.put(
+    path="/by_id",
+    status_code=status.HTTP_200_OK
+)
+async def update_user_by_id(
+    user_id: str | None,
+    it_self: bool,
+    user_data: UserUpdateSchema,
+    token: dict = Depends(decode_token),
+    db_session: AsyncSession = Depends(get_db_session)
+):
+    if token["role"] in ["Партнёр", "Админ"] and it_self == False:
+        await update_user_in_db(
+            user_id, db_session, user_data, 
+            user_data.student_info, user_data.partner_info
+        )
+    if token["role"] in ["Партнёр", "Админ", "Студент"] and it_self == True:
+        await update_user_in_db(
+            user_id, db_session, user_data, 
+            user_data.student_info, user_data.partner_info
+        )
+    return {"msg": "Ты успешно обновил данные!"}
